@@ -1,15 +1,32 @@
 package org.example.observer
 
-class CurrentConditionDisplay(private val weatherData: WeatherData) : Observer, DisplayElement {
-    init {
-        weatherData.registerObserver(this)
-    }
+import java.util.concurrent.Flow
+import java.util.concurrent.Flow.Subscriber
 
-    override fun update() {
-        display()
-    }
+class CurrentConditionDisplay : Subscriber<WeatherData>, DisplayElement {
+    private var subscription: Flow.Subscription? = null
+    private lateinit var weatherData: WeatherData
 
     override fun display() {
-        println("Current Condition : $weatherData")
+        println("Current condition : $weatherData")
+    }
+
+    override fun onSubscribe(subscription: Flow.Subscription?) {
+        this.subscription = subscription
+        subscription?.request(1)
+    }
+
+    override fun onError(throwable: Throwable?) {
+        //do nothing
+    }
+
+    override fun onComplete() {
+        //do nothing
+    }
+
+    override fun onNext(item: WeatherData?) {
+        this.weatherData = item!!
+        subscription?.request(1)
+        display()
     }
 }
